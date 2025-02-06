@@ -1,0 +1,33 @@
+career-platform/
+├── docker-compose.yml
+├── k8s/
+│   ├── user-service.yaml
+│   ├── parser-service.yaml
+│   ├── ai-service.yaml
+│   └── payment-service.yaml
+├── services/
+│   ├── user-service/
+│   │   ├── Dockerfile
+│   │   ├── src/
+│   │   │   ├── index.js
+│   │   │   ├── routes/
+│   │   │   ├── models/
+│   │   │   ├── middleware/
+│   │   │   └── config/
+│   │   ├── tests/
+│   │   └── package.json
+│   ├── parser-service/
+│   │   ├── Dockerfile
+│   │   ├── src/
+│   │   └── package.json
+│   ├── ai-service/
+│   │   ├── Dockerfile
+│   │   ├── src/
+│   │   └── package.json
+│   └── payment-service/
+│       ├── Dockerfile
+│       ├── src/
+│       └── package.json
+└── shared/
+    └── lib/
+        └── common.js 
