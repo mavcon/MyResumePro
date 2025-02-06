@@ -1,0 +1,101 @@
+version: '3.8'
+
+networks:
+  career-platform:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    env_file:
+      - docker-compose.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - career-platform
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - career-platform
+
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "3000:3000"
+    env_file:
+      - docker-compose.env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - career-platform
+
+  parser-service:
+    build: ./services/parser-service
+    ports:
+      - "3001:3001"
+    env_file:
+      - docker-compose.env
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - user-service
+    networks:
+      - career-platform
+
+  ai-service:
+    build: ./services/ai-service
+    ports:
+      - "3002:3002"
+    env_file:
+      - docker-compose.env
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - career-platform
+
+  frontend:
+    build: ./services/frontend
+    ports:
+      - "3006:3000"
+    env_file:
+      - docker-compose.env
+    environment:
+      - PORT=3000
+      - WDS_SOCKET_PORT=0
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./services/frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - user-service
+      - parser-service
+      - ai-service
+    networks:
+      - career-platform
+
+volumes:
+  postgres_data:
