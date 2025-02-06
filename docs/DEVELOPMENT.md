@@ -74,6 +74,18 @@ The application consists of multiple microservices that need to be running for f
   * Payment Service (Port 3003): Manages subscriptions and payments
 
 ### Environment Variables
+
+#### Local Development Setup
+1. Copy the template files to create your local environment files:
+   ```bash
+   cp docker-compose.env.template docker-compose.env
+   cp services/frontend/.env.template services/frontend/.env
+   ```
+
+2. Update the environment files with your specific values:
+   - `docker-compose.env`: Contains backend service configurations
+   - `services/frontend/.env`: Contains frontend configurations
+
 Frontend service (.env file):
 ```
 REACT_APP_PARSER_SERVICE_URL=http://localhost:3001
@@ -84,6 +96,29 @@ PORT=3006
 REACT_APP_API_URL=http://localhost:3000
 REACT_APP_SENTRY_DSN=your-sentry-dsn  # Optional: Set up Sentry for error tracking
 ```
+
+#### Production Setup
+For production environments:
+1. Never commit environment files (.env, docker-compose.env)
+2. Use your deployment platform's secrets management:
+   - Kubernetes: Use secrets and configMaps
+   - Cloud platforms: Use their respective secrets management services
+   - CI/CD: Configure environment variables in your pipeline settings
+
+#### Sensitive Values
+For sensitive values like API keys and secrets:
+1. Generate unique values for each environment
+2. Use strong, random values for secrets (e.g., JWT_SECRET)
+3. Rotate secrets periodically
+4. Limit access to production credentials
+
+#### Environment Types
+Maintain separate environment files for different contexts:
+- Development: Local development settings
+- Staging: Testing environment that mirrors production
+- Production: Live environment settings
+
+Never share production credentials in development environments or version control.
 
 ### Starting the Application
 Option 1: Using Docker Compose (Recommended)
