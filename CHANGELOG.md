@@ -26,6 +26,12 @@ All notable changes to MyResumePro will be documented in this file.
 
 ### Fixed
 
+- Fixed date validation in experience and education sections
+- Enhanced form validation with clearer error messages
+- Added character count indicators for text fields
+- Improved validation UX with loading states
+- Made form navigation sticky for better usability
+- Fixed conditional validation for current job end dates
 - Token expiration handling
 - Form data persistence issues
 - Cross-origin resource sharing (CORS) configuration

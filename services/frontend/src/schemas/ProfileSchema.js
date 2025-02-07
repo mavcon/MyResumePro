@@ -12,7 +12,7 @@ export const ProfileSchema = Yup.object().shape({
     .min(50, 'Please provide a more detailed summary (at least 50 characters)'),
   location: Yup.string(),
   phone: Yup.string()
-    .matches(/^[0-9+-\s()]*$/, 'Invalid phone number'),
+    .matches(/^\+?1?\s*\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/, 'Please enter a valid phone number (e.g., +1 (555) 123-4567)'),
   website: Yup.string()
     .url('Invalid URL format'),
   linkedin: Yup.string()
@@ -39,12 +39,12 @@ export const ProfileSchema = Yup.object().shape({
       startDate: Yup.date()
         .required('Start date is required')
         .max(new Date(), 'Start date cannot be in the future'),
-      endDate: Yup.date().when('current', {
-        is: false,
-        then: Yup.date()
+      endDate: Yup.date().when('current', (current, schema) => 
+        current ? schema.nullable() : schema
+          .required('End date is required')
           .min(Yup.ref('startDate'), 'End date must be after start date')
           .max(new Date(), 'End date cannot be in the future')
-      }),
+      ),
       current: Yup.boolean(),
       description: Yup.string()
         .min(50, 'Please provide a more detailed description (at least 50 characters)')
@@ -78,6 +78,7 @@ export const ProfileSchema = Yup.object().shape({
         .required('Start date is required')
         .max(new Date(), 'Start date cannot be in the future'),
       endDate: Yup.date()
+        .required('End date is required')
         .min(Yup.ref('startDate'), 'End date must be after start date')
         .max(new Date(), 'End date cannot be in the future'),
       gpa: Yup.string()
@@ -125,12 +126,14 @@ export const ProfileSchema = Yup.object().shape({
     .required('Email is required'),
   password: Yup.string()
     .min(8, 'Password must be at least 8 characters')
-    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .matches(/[0-9]/, 'Password must contain at least one number')
-    .matches(/[!@#$%^&*]/, 'Password must contain at least one special character')
+    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter (A-Z)')
+    .matches(/[0-9]/, 'Password must contain at least one number (0-9)')
+    .matches(/[!@#$%^&*]/, 'Password must contain at least one special character (!@#$%^&*)')
     .required('Password is required'),
   name: Yup.string()
     .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters')
+    .matches(/^[a-zA-Z\s'-]+$/, 'Name can only contain letters, spaces, hyphens and apostrophes')
     .required('Name is required')
 });
 

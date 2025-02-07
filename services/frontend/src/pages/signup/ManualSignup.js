@@ -33,6 +33,7 @@ function ManualSignup() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [validating, setValidating] = useState(false);
   const [error, setError] = useState(null);
   const [showDraftNotification, setShowDraftNotification] = useState(false);
   const [draftData, setDraftData] = useState(null);
@@ -87,11 +88,13 @@ function ManualSignup() {
   }, []);
 
   const handleNext = async () => {
+    setValidating(true);
     const errors = await formik.validateForm();
     const currentStepFields = getFieldsForStep(step);
     const hasStepErrors = currentStepFields.some(field => errors[field]);
 
     if (!hasStepErrors) {
+      setValidating(false);
       if (step === 4) {
         setShowPreview(true);
       } else {
@@ -141,15 +144,28 @@ function ManualSignup() {
 
   const renderField = (name, label, type = 'text', options = {}) => {
     const error = formik.touched[name] && formik.errors[name];
+    const value = formik.values[name] || '';
+    const maxLength = options.maxLength || (type === 'textarea' ? 500 : 100);
+    const characterCount = value.length;
     
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          {label} {options.required && <span className="text-red-500">*</span>}
-        </label>
+        <div className="flex justify-between items-center">
+          <label className="block text-sm font-medium text-gray-700">
+            {label} {options.required && <span className="text-red-500">*</span>}
+          </label>
+          <span className="text-xs text-gray-500">
+            {characterCount}/{maxLength} characters
+          </span>
+        </div>
         {type === 'textarea' ? (
           <textarea
             {...formik.getFieldProps(name)}
+            maxLength={maxLength}
+            onBlur={(e) => {
+              formik.handleBlur(e);
+              formik.setFieldTouched(name, true, true);
+            }}
             className={`mt-1 block w-full rounded-md shadow-sm transition-colors
               ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}
@@ -160,6 +176,11 @@ function ManualSignup() {
           <input
             type={type}
             {...formik.getFieldProps(name)}
+            maxLength={maxLength}
+            onBlur={(e) => {
+              formik.handleBlur(e);
+              formik.setFieldTouched(name, true, true);
+            }}
             className={`mt-1 block w-full rounded-md shadow-sm transition-colors
               ${error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'}
@@ -719,7 +740,7 @@ function ManualSignup() {
                   </motion.div>
                 </AnimatePresence>
 
-                <div className="mt-8 flex justify-between items-center pt-5 border-t border-gray-200">
+                <div className="mt-8 flex justify-between items-center pt-5 border-t border-gray-200 sticky bottom-0 bg-white">
                   {(step > 1 || showPreview) && (
                     <button
                       type="button"
@@ -742,9 +763,20 @@ function ManualSignup() {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="ml-auto inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      disabled={validating}
+                      className="ml-auto inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {step === 4 ? "Review Profile" : "Continue"}
+                      {validating ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Validating...
+                        </span>
+                      ) : (
+                        step === 4 ? "Review Profile" : `Continue to ${["Experience", "Education & Skills", "Account Setup"][step - 1]}`
+                      )}
                     </button>
                   )}
                 </div>
